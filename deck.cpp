@@ -1,8 +1,36 @@
 #include "deck.h"
 
-Deck::Deck(std::string  n = "<Insert Name Here>")
+Deck::Deck()
 {
-  name = n;
+    count = 0;
+}
+void Deck::clear()
+{
+  root.clear();
+}
+float Deck::getPercent(char color)
+{
+  float result=0;
+  Json::Value::iterator iter = root.begin();
+  for(;iter!=root.end();iter++)
+  {
+
+    Json::Value::iterator c_it = (*iter)["colors"].begin();
+    for (;c_it!=(*iter)["colors"].end();c_it++)
+    {
+      if ((*c_it).asString()[2] == 'u' && color=='U')
+      {
+        result+=(*iter)["count"].asInt();
+      }
+      else if ((*c_it).asString()[0] == color)
+      {
+
+        result+=(*iter)["count"].asInt();
+      }
+    }
+  }
+  result = result/count;
+  return result*100;
 }
 void Deck::addCards(std::vector<std::string> cards,Database db)
 {
@@ -21,19 +49,16 @@ void Deck::addCards(std::vector<std::string> cards,Database db)
       "imageName":"air elemental",
       "colorIdentity":["U"]},
       */
-      //std::cout<<cards[1]<<"\n";
       Json::Value database = db.root;
       Json::Value::iterator iter;
       Json::Value tmp;
-      for (int i=0;i<cards.size();i++)
+      for (unsigned int i=0;i<cards.size();i++)
       {
         iter = database.begin();
         for (;iter!=database.end();iter++)
         {
           if (boost::iequals((*iter)["name"].asString(),cards[i]))
           {
-            //std::cout<<"WO";
-            //std::cout<<(*iter)["name"].asString()<<"\n";
             if (root.isMember((*iter)["name"].asString()))
             {
               increment((*iter)["name"].asString());
@@ -44,6 +69,9 @@ void Deck::addCards(std::vector<std::string> cards,Database db)
               tmp["count"] = 1;
               root[tmp["name"].asString()] = tmp;
             }
+
+            count++;
+
           }
         }
       }
@@ -51,6 +79,19 @@ void Deck::addCards(std::vector<std::string> cards,Database db)
 void Deck::increment(std::string n)
 {
   root[n]["count"]= root[n]["count"].asInt()+1;
+}
+void Deck::saveDeck(std::string fname)
+{
+  std::ofstream ofs;
+  ofs.open(fname);
+
+  Json::Value::iterator iter = root.begin();
+  for(;iter!=root.end();iter++)
+  {
+    ofs<<(*iter)["count"].asInt()<<" "<<(*iter)["name"].asString()<<"\n";
+  }
+  ofs.close();
+
 }
 void Deck::printCards()
 {

@@ -10,7 +10,8 @@
 class Database
 {
   public:
-    Database(std::string);
+    Database();
+    void getData(std::string);
     bool verify(std::vector<std::string>);
     Json::Value root;
 };
